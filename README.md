@@ -1,1 +1,1 @@
-# epaper-infodisplay
+# E-paper display meant to show information from Home Assistant using esphome
