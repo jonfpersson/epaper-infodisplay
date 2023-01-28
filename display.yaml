@@ -3,7 +3,7 @@ esphome:
   on_boot:
     priority: -10
     then:
-      - delay: 13s
+      - delay: 20s
       - component.update: epaperdisplay
 ota:
 
@@ -25,21 +25,20 @@ time:
   - platform: homeassistant
     id: homeassistant_time
 
-
 # Include custom fonts
 font:
-  - file: 'GothamRnd-Book.ttf'
-    id: font_small_book
-    size: 18
   - file: 'GothamRnd-Bold.ttf'
     id: font_title
     size: 48
+    glyphs: '!"%()+=,-_.:°0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz''&/'
   - file: 'GothamRnd-Bold.ttf'
     id: font_medium_bold
     size: 30
+    glyphs: '!"%()+=,-_.:°0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz''&/'
   - file: 'GothamRnd-Bold.ttf'
     id: font_small_bold
     size: 21
+    glyphs: '!"%()+=,-_.:°0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz''&/'
 
   - file: 'materialdesignicons-webfont.ttf'
     id: font_mdi_large
@@ -99,7 +98,7 @@ display:
     id: epaperdisplay
     cs_pin: 9
     dc_pin: 8
-    update_interval: never
+    update_interval: 5h
     busy_pin: 13
     reset_pin: 12
     reset_duration: 2ms
@@ -118,11 +117,11 @@ display:
         int y = 50;
         int offset = 50;
         
-        it.printf(240, y, id(font_title), color_text, TextAlign::TOP_CENTER, "Todays date");
+        it.printf(240, y, id(font_title), color_text, TextAlign::TOP_CENTER, "Today's date");
         it.strftime(240, y + offset, id(font_small_bold), TextAlign::TOP_CENTER, "%d of %B %Y", id(homeassistant_time).now());
 
         //outside temp
-        it.printf(240, y + offset*2, id(font_medium_bold), color_text, TextAlign::TOP_CENTER, "Todays weather");
+        it.printf(240, y + offset*2, id(font_medium_bold), color_text, TextAlign::TOP_CENTER, "Today's weather");
         it.printf(240, y + offset*3, id(font_small_bold), color_text, TextAlign::TOP_CENTER, "%.1f°C", outsideTemp);
 
         if(outsideTemp < 10.0){
@@ -134,17 +133,16 @@ display:
         }
 
 
-        //Room & humidity temp
+        //Room temp & humidity 
         it.printf(240, y + offset*4, id(font_medium_bold), color_text, TextAlign::TOP_CENTER, "Room temperature");
-        it.printf(260, y + offset*5, id(font_small_bold), color_text, TextAlign::TOP_CENTER, "%.1f°C and %.1f %%", roomTemp, roomHumidity);
+        it.printf(260, y + offset*5, id(font_small_bold), color_text, TextAlign::TOP_CENTER, "%.1f°C at %.1f %% humidity", roomTemp, roomHumidity);
 
         if(roomTemp < 19.0){
-          it.printf(160, y + offset*5, id(font_mdi_large), color_text, TextAlign::TOP_CENTER, "%s", "\U000F0717");
-
+          it.printf(125, y + offset*5, id(font_mdi_large), color_text, TextAlign::TOP_CENTER, "%s", "\U000F0717");
         } else if (roomTemp > 19.0 && roomTemp < 26.0){
-          it.printf(160, y + offset*5, id(font_mdi_large), color_text, TextAlign::TOP_CENTER, "%s", "\U000F1719");
+          it.printf(125, y + offset*5, id(font_mdi_large), color_text, TextAlign::TOP_CENTER, "%s", "\U000F1719");
         } else{
-          it.printf(160, y + offset*5, id(font_mdi_large), color_text, TextAlign::TOP_CENTER, "%s", "\U000F0238");
+          it.printf(125, y + offset*5, id(font_mdi_large), color_text, TextAlign::TOP_CENTER, "%s", "\U000F0238");
         }
 
 
@@ -154,3 +152,6 @@ display:
         it.printf(240, y + offset*8, id(font_small_bold), color_text, TextAlign::TOP_CENTER, "%.1f kwh used this month", kwhUsed);
 
         it.printf(170, y + offset*7, id(font_mdi_large), color_text, TextAlign::TOP_CENTER, "%s", "\U000F140B");
+
+        //Last updated
+        it.strftime(240, 800 - 20, id(font_small_bold), color_text, TextAlign::TOP_CENTER, "Last updated %X", id(homeassistant_time).now());
