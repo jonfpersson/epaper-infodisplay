@@ -3,7 +3,7 @@ esphome:
   on_boot:
     priority: -10
     then:
-      - delay: 20s
+      - delay: 60s
       - component.update: epaperdisplay
 ota:
 
@@ -29,20 +29,20 @@ time:
 font:
   - file: 'GothamRnd-Bold.ttf'
     id: font_title
-    size: 48
+    size: 52
     glyphs: '!"%()+=,-_.:°0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz''&/'
   - file: 'GothamRnd-Bold.ttf'
     id: font_medium_bold
-    size: 30
+    size: 33
     glyphs: '!"%()+=,-_.:°0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz''&/'
   - file: 'GothamRnd-Bold.ttf'
     id: font_small_bold
-    size: 21
+    size: 25
     glyphs: '!"%()+=,-_.:°0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz''&/'
 
   - file: 'materialdesignicons-webfont.ttf'
     id: font_mdi_large
-    size: 21
+    size: 25
     glyphs: &mdi-weather-glyphs
     - "\U000F0F36"
     - "\U000F0599"
@@ -51,7 +51,7 @@ font:
     - "\U000F1A7F"
     - "\U000F140B"
     - "\U000F1719"
-    
+
 color:
   - id: color_bg
     red: 0%
@@ -69,41 +69,46 @@ sensor:
     id: room_temp
     internal: true
 
-  - platform: homeassistant 
+  - platform: homeassistant
     entity_id: sensor.mostigen_1_genarp_outdoor_temperature
     id: outside_temp
     internal: true
 
-  - platform: homeassistant 
+  - platform: homeassistant
     entity_id: sensor.nordpool_kwh_se4_sek_2_10_025
     id: electricity_price
     internal: true
 
-  - platform: homeassistant 
+  - platform: homeassistant
     entity_id: sensor.jonathan_bedroom_sensor_humidity
     id: room_Humidity
     internal: true
 
-  - platform: homeassistant 
+  - platform: homeassistant
     entity_id: sensor.monthly_net_consumption_mostigen_1
     id: kwh_Used
+    internal: true
+
+  - platform: homeassistant
+    entity_id: sensor.monthly_cost_mostigen_1
+    id: kwh_Used_price
     internal: true
 
 spi:
   clk_pin: 10
   mosi_pin: 11  #DIN
-  
+
 display:
   - platform: waveshare_epaper
     id: epaperdisplay
-    cs_pin: 9
+    cs_pin: 4
     dc_pin: 8
-    update_interval: 5h
+    update_interval: 1h
     busy_pin: 13
     reset_pin: 12
     reset_duration: 2ms
     rotation: 90°
-    
+
     model: 7.50in-bv2
     lambda: |-
 
@@ -112,46 +117,53 @@ display:
         float roomTemp = id(room_temp).state;
         float roomHumidity = id(room_Humidity).state;
         float kwhUsed = id(kwh_Used).state;
+        float kwhUsedPrice = id(kwh_Used_price).state;
         float electricityPrice = id(electricity_price).state;
 
         int y = 50;
-        int offset = 50;
-        
+        int offset = 65;
+
         it.printf(240, y, id(font_title), color_text, TextAlign::TOP_CENTER, "Today's date");
         it.strftime(240, y + offset, id(font_small_bold), TextAlign::TOP_CENTER, "%d of %B %Y", id(homeassistant_time).now());
 
         //outside temp
         it.printf(240, y + offset*2, id(font_medium_bold), color_text, TextAlign::TOP_CENTER, "Today's weather");
-        it.printf(240, y + offset*3, id(font_small_bold), color_text, TextAlign::TOP_CENTER, "%.1f°C", outsideTemp);
+        it.printf(240, y + offset*3, id(font_small_bold), color_text, TextAlign::TOP_CENTER, "%.1f°C outside", outsideTemp);
 
+        auto tempOutsideIcon = "";
         if(outsideTemp < 10.0){
-          it.printf(200, y + offset*3, id(font_mdi_large), color_text, TextAlign::TOP_CENTER, "%s", "\U000F0F36");
+          tempOutsideIcon = "\U000F0F36";
         } else if(outsideTemp > 10.0 && outsideTemp < 23.0){
-          it.printf(200, y + offset*3, id(font_mdi_large), color_text, TextAlign::TOP_CENTER, "%s", "\U000F0599");
+          tempOutsideIcon = "\U000F0599";
         } else{
-          it.printf(200, y + offset*3, id(font_mdi_large), color_text, TextAlign::TOP_CENTER, "%s", "\U000F0238");
+          tempOutsideIcon = "\U000F0238";
         }
 
+        it.printf(140, y + offset*3, id(font_mdi_large), color_text, TextAlign::TOP_CENTER, "%s", tempOutsideIcon);
 
-        //Room temp & humidity 
+        //Room temp & humidity
         it.printf(240, y + offset*4, id(font_medium_bold), color_text, TextAlign::TOP_CENTER, "Room temperature");
-        it.printf(260, y + offset*5, id(font_small_bold), color_text, TextAlign::TOP_CENTER, "%.1f°C at %.1f %% humidity", roomTemp, roomHumidity);
+        it.printf(260, y + offset*5, id(font_small_bold), color_text, TextAlign::TOP_CENTER, "%.1f°C & %.1f%% humidity", roomTemp, roomHumidity);
 
+        auto tempRoomIcon = "";
         if(roomTemp < 19.0){
-          it.printf(125, y + offset*5, id(font_mdi_large), color_text, TextAlign::TOP_CENTER, "%s", "\U000F0717");
+          tempRoomIcon = "\U000F0717";
         } else if (roomTemp > 19.0 && roomTemp < 26.0){
-          it.printf(125, y + offset*5, id(font_mdi_large), color_text, TextAlign::TOP_CENTER, "%s", "\U000F1719");
+          tempRoomIcon = "\U000F1719";
         } else{
-          it.printf(125, y + offset*5, id(font_mdi_large), color_text, TextAlign::TOP_CENTER, "%s", "\U000F0238");
+          tempRoomIcon = "\U000F0238";
         }
+        it.printf(90, y + offset*5, id(font_mdi_large), color_text, TextAlign::TOP_CENTER, "%s", tempRoomIcon);
+
 
 
         //Electricity
         it.printf(240, y + offset*6, id(font_medium_bold), color_text, TextAlign::TOP_CENTER, "Electricity price");
         it.printf(240, y + offset*7, id(font_small_bold), color_text, TextAlign::TOP_CENTER, "%.1f kr/kwh", electricityPrice);
         it.printf(240, y + offset*8, id(font_small_bold), color_text, TextAlign::TOP_CENTER, "%.1f kwh used this month", kwhUsed);
+        it.printf(240, y + offset*9, id(font_small_bold), color_text, TextAlign::TOP_CENTER, "for %0.1f kr", kwhUsedPrice);
 
-        it.printf(170, y + offset*7, id(font_mdi_large), color_text, TextAlign::TOP_CENTER, "%s", "\U000F140B");
+        it.printf(160, y + offset*7, id(font_mdi_large), color_text, TextAlign::TOP_CENTER, "%s", "\U000F140B");
 
         //Last updated
         it.strftime(240, 800 - 20, id(font_small_bold), color_text, TextAlign::TOP_CENTER, "Last updated %X", id(homeassistant_time).now());
