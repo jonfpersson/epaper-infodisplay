@@ -26,7 +26,6 @@ time:
   - platform: homeassistant
     id: homeassistant_time
   - platform: sntp
-    # ...
     on_time:
       - hours: 7,8,11,12,13,14,15,16,17,18,19,20,21,22,23,0
         then:
@@ -89,14 +88,6 @@ sensor:
     entity_id: sensor.monthly_cost_mostigen_1
     id: kwh_Used_price
     internal: true
-
-graph:
-  # Show bare-minimum auto-ranged graph
-  - id: single_temperature_graph
-    sensor: room_temp
-    duration: 1h
-    width: 151
-    height: 51
 
 spi:
   clk_pin: 10
@@ -166,9 +157,6 @@ display:
         it.printf(240, y + offset*8.5, id(font_small_bold), COLOR_OFF, TextAlign::TOP_CENTER, "for %0.1f kr", kwhUsedPrice);
 
         it.printf(160, y + offset*7, id(font_mdi_large), COLOR_OFF, TextAlign::TOP_CENTER, "%s", "\U000F140B");
-
-        it.graph(240, y + offset*10, id(single_temperature_graph));
-
 
         //Last updated
         it.strftime(240, 800 - 25, id(font_small_bold), COLOR_OFF, TextAlign::TOP_CENTER, "Last updated %X", id(homeassistant_time).now());
