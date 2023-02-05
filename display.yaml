@@ -21,9 +21,16 @@ wifi:
 
 logger:
   level: DEBUG
+
 time:
   - platform: homeassistant
     id: homeassistant_time
+  - platform: sntp
+    # ...
+    on_time:
+      - hours: 7,8,11,12,13,14,15,16,17,18,19,20,21,22,23,0
+        then:
+          - component.update: epaperdisplay
 
 # Include custom fonts
 font:
@@ -52,17 +59,6 @@ font:
     - "\U000F140B"
     - "\U000F1719"
 
-color:
-  - id: color_bg
-    red: 0%
-    green: 0%
-    blue: 0%
-    white: 0%
-  - id: color_text
-    red: 0%
-    green: 0%
-    blue: 0%
-    white: 100%
 sensor:
   - platform: homeassistant
     entity_id: sensor.jonathan_bedroom_sensor_temperature
@@ -94,6 +90,14 @@ sensor:
     id: kwh_Used_price
     internal: true
 
+graph:
+  # Show bare-minimum auto-ranged graph
+  - id: single_temperature_graph
+    sensor: room_temp
+    duration: 1h
+    width: 151
+    height: 51
+
 spi:
   clk_pin: 10
   mosi_pin: 11  #DIN
@@ -103,7 +107,7 @@ display:
     id: epaperdisplay
     cs_pin: 4
     dc_pin: 8
-    update_interval: 1h
+    #update_interval: 1h
     busy_pin: 13
     reset_pin: 12
     reset_duration: 2ms
@@ -122,13 +126,13 @@ display:
 
         int y = 50;
         int offset = 65;
-
-        it.printf(240, y, id(font_title), color_text, TextAlign::TOP_CENTER, "Today's date");
-        it.strftime(240, y + offset, id(font_small_bold), TextAlign::TOP_CENTER, "%d of %B %Y", id(homeassistant_time).now());
+        it.fill(COLOR_ON);
+        it.printf(240, y, id(font_title), COLOR_OFF, TextAlign::TOP_CENTER, "Today's date");
+        it.strftime(240, y + offset, id(font_small_bold), COLOR_OFF, TextAlign::TOP_CENTER, "%d of %B %Y", id(homeassistant_time).now());
 
         //outside temp
-        it.printf(240, y + offset*2, id(font_medium_bold), color_text, TextAlign::TOP_CENTER, "Today's weather");
-        it.printf(240, y + offset*3, id(font_small_bold), color_text, TextAlign::TOP_CENTER, "%.1f°C outside", outsideTemp);
+        it.printf(240, y + offset*2, id(font_medium_bold), COLOR_OFF, TextAlign::TOP_CENTER, "Today's weather");
+        it.printf(240, y + offset*3, id(font_small_bold), COLOR_OFF, TextAlign::TOP_CENTER, "%.1f°C outside", outsideTemp);
 
         auto tempOutsideIcon = "";
         if(outsideTemp < 10.0){
@@ -139,11 +143,11 @@ display:
           tempOutsideIcon = "\U000F0238";
         }
 
-        it.printf(140, y + offset*3, id(font_mdi_large), color_text, TextAlign::TOP_CENTER, "%s", tempOutsideIcon);
+        it.printf(140, y + offset*3, id(font_mdi_large), COLOR_OFF, TextAlign::TOP_CENTER, "%s", tempOutsideIcon);
 
         //Room temp & humidity
-        it.printf(240, y + offset*4, id(font_medium_bold), color_text, TextAlign::TOP_CENTER, "Room temperature");
-        it.printf(260, y + offset*5, id(font_small_bold), color_text, TextAlign::TOP_CENTER, "%.1f°C & %.1f%% humidity", roomTemp, roomHumidity);
+        it.printf(240, y + offset*4, id(font_medium_bold), COLOR_OFF, TextAlign::TOP_CENTER, "Room temperature");
+        it.printf(260, y + offset*5, id(font_small_bold), COLOR_OFF, TextAlign::TOP_CENTER, "%.1f°C & %.1f%% humidity", roomTemp, roomHumidity);
 
         auto tempRoomIcon = "";
         if(roomTemp < 19.0){
@@ -153,17 +157,18 @@ display:
         } else{
           tempRoomIcon = "\U000F0238";
         }
-        it.printf(90, y + offset*5, id(font_mdi_large), color_text, TextAlign::TOP_CENTER, "%s", tempRoomIcon);
-
-
+        it.printf(90, y + offset*5, id(font_mdi_large), COLOR_OFF, TextAlign::TOP_CENTER, "%s", tempRoomIcon);
 
         //Electricity
-        it.printf(240, y + offset*6, id(font_medium_bold), color_text, TextAlign::TOP_CENTER, "Electricity price");
-        it.printf(240, y + offset*7, id(font_small_bold), color_text, TextAlign::TOP_CENTER, "%.1f kr/kwh", electricityPrice);
-        it.printf(240, y + offset*8, id(font_small_bold), color_text, TextAlign::TOP_CENTER, "%.1f kwh used this month", kwhUsed);
-        it.printf(240, y + offset*9, id(font_small_bold), color_text, TextAlign::TOP_CENTER, "for %0.1f kr", kwhUsedPrice);
+        it.printf(240, y + offset*6, id(font_medium_bold), COLOR_OFF, TextAlign::TOP_CENTER, "Electricity price");
+        it.printf(240, y + offset*7, id(font_small_bold), COLOR_OFF, TextAlign::TOP_CENTER, "%.1f kr/kwh", electricityPrice);
+        it.printf(240, y + offset*8, id(font_small_bold), COLOR_OFF, TextAlign::TOP_CENTER, "%.1f kwh used this month", kwhUsed);
+        it.printf(240, y + offset*8.5, id(font_small_bold), COLOR_OFF, TextAlign::TOP_CENTER, "for %0.1f kr", kwhUsedPrice);
 
-        it.printf(160, y + offset*7, id(font_mdi_large), color_text, TextAlign::TOP_CENTER, "%s", "\U000F140B");
+        it.printf(160, y + offset*7, id(font_mdi_large), COLOR_OFF, TextAlign::TOP_CENTER, "%s", "\U000F140B");
+
+        it.graph(240, y + offset*10, id(single_temperature_graph));
+
 
         //Last updated
-        it.strftime(240, 800 - 20, id(font_small_bold), color_text, TextAlign::TOP_CENTER, "Last updated %X", id(homeassistant_time).now());
+        it.strftime(240, 800 - 25, id(font_small_bold), COLOR_OFF, TextAlign::TOP_CENTER, "Last updated %X", id(homeassistant_time).now());
